@@ -1,0 +1,141 @@
+.consoleWrapper {
+    display: flex;
+    flex-direction: column;
+    height: 600px !important;
+    max-height: 600px !important;
+    background: #050505;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden !important;
+    position: relative;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+}
+
+.clearBtn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+}
+
+.console {
+    flex: 1;
+    min-height: 0; // CRITICAL: Allows flex item to be smaller than its content for scrolling
+    padding: 1.5rem;
+    font-family: var(--font-mono);
+    overflow-y: auto;
+    background: transparent;
+
+    pre {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: #ddd;
+    }
+}
+
+.inputArea {
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.commandInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    outline: none;
+
+    &::placeholder {
+        color: #444;
+    }
+}
+
+.prompt {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-weight: 700;
+}
+
+.logLine {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding-bottom: 2px;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.logTime {
+    color: #666;
+    font-size: 0.8rem;
+    margin-right: 8px;
+}
+
+.logInfo {
+    color: #55aaff;
+    font-weight: 600;
+}
+
+.logWarn {
+    color: #ffaa00;
+    font-weight: 700;
+}
+
+.logError {
+    color: #ff5555;
+    font-weight: 700;
+}
+
+.logPlayer {
+    color: #55ff55;
+    font-weight: 700;
+}
+
+.logCommand {
+    color: #aa55aa;
+    font-style: italic;
+}
+
+.logJoin {
+    color: #ffff55;
+}
+
+.serverStarting {
+    color: #55ffff;
+    font-weight: 700;
+}

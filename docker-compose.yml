@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  minecraft-dashboard:
+    container_name: minecraft-dashboard
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the Docker socket to allow the dashboard to manage other containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NODE_ENV=production

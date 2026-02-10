@@ -1,0 +1,134 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.tableWrapper {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+
+    th {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 12px 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+    }
+}
+
+.playerCell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        image-rendering: pixelated;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #000;
+    }
+
+    .name {
+        font-weight: 600;
+        color: white;
+    }
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.opBadge {
+    background: #fb0;
+    color: black;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.actionBtn {
+    padding: 6px 12px;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+
+    &:hover:not(:disabled) {
+        background: #252525;
+        color: white;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+}
+
+.dangerBtn {
+    &:hover:not(:disabled) {
+        background: rgba(255, 68, 68, 0.1);
+        color: #f44;
+        border-color: rgba(255, 68, 68, 0.2);
+    }
+}
+
+.emptyState {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    background: rgba(0, 0, 0, 0.1);
+}

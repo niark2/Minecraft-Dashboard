@@ -1,0 +1,93 @@
+.explorer {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.breadcrumb {
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+
+    span {
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: var(--transition);
+
+        &:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+    }
+
+    .active {
+        color: white;
+        font-weight: 600;
+        cursor: default;
+
+        &:hover {
+            background: none;
+        }
+    }
+}
+
+.fileList {
+    display: flex;
+    flex-direction: column;
+}
+
+.fileItem {
+    padding: 12px 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.03);
+        color: white;
+    }
+
+    svg {
+        width: 18px;
+        height: 18px;
+        opacity: 0.5;
+    }
+}
+
+.directoryIcon {
+    color: #ffd700;
+    /* Folder gold */
+}
+
+.fileIcon {
+    color: var(--text-secondary);
+}
+
+.empty {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+}

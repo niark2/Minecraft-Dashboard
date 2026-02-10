@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #0a0a0a;
+  --bg-card: #121212;
+  --bg-card-hover: #181818;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --text-primary: #ffffff;
+  --text-secondary: #999999;
+
+  --accent-primary: #ffffff;
+  --accent-glow: rgba(255, 255, 255, 0.1);
+
+  --danger: #ff4444;
+  --warning: #ffaa00;
+  --success: #00ff88;
+
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --card-radius: 12px;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: var(--transition);
+  border: none;
+  outline: none;
+}
+
+input,
+select {
+  background: #111;
+  border: 1px solid var(--border-color);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: #161616;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide {
+  animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+.page-transition {
+  animation: fadeIn 0.5s ease-out both;
+}

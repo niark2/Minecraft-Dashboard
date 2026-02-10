@@ -1,0 +1,97 @@
+.editor {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.title {
+    display: none;
+}
+
+.title {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+
+    label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    input {
+        background: #111;
+        border: 1px solid var(--border-color);
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 1rem;
+        color: white;
+
+        &:focus {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: #161616;
+            outline: none;
+        }
+    }
+
+    small {
+        color: #555;
+        font-size: 0.8rem;
+    }
+}
+
+.iconPicker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.iconBtn {
+    background: transparent;
+    font-size: 1.5rem;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1.1);
+    }
+}
+
+.activeIcon {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.saveBtn {
+    background: white;
+    color: black;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: var(--transition);
+
+    &:hover:not(:disabled) {
+        background: #e0e0e0;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
