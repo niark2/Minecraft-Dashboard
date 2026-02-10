@@ -18,7 +18,7 @@ export async function login(prevState: { error: string }, formData: FormData) {
 
         cookieStore.set('dashboard_session', 'authenticated', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: false, // Allow HTTP since we are likely on a local network or direct IP without SSL
             sameSite: 'strict',
             expires: expires
         });
