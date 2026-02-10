@@ -6,7 +6,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3000:3000" # Maps host port 3000 to container port 3000. Use http://your-vps-ip:3000
     volumes:
       # Mount the Docker socket to allow the dashboard to manage other containers
       - /var/run/docker.sock:/var/run/docker.sock
