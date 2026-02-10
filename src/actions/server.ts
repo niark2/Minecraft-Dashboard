@@ -21,6 +21,18 @@ function validateAndSanitizePath(path: string): string {
     return normalized;
 }
 
+export async function getPublicIp(): Promise<string> {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json', { next: { revalidate: 3600 } });
+        if (!response.ok) throw new Error('Failed to fetch IP');
+        const data = await response.json();
+        return data.ip;
+    } catch (error) {
+        console.error('Failed to resolve public IP:', error);
+        return ''; // Return empty to let frontend fallback to window.location
+    }
+}
+
 export async function getServers(): Promise<MinecraftServer[]> {
     try {
         const containers = await docker.listContainers({ all: true });

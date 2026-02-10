@@ -1,7 +1,7 @@
 'use client';
 
 import { MinecraftServer } from '@/types/server';
-import { startServer, stopServer, deleteServer } from '@/actions/server';
+import { startServer, stopServer, deleteServer, getPublicIp } from '@/actions/server';
 import { useState, useEffect } from 'react';
 import styles from './ServerCard.module.scss';
 import { useRouter } from 'next/navigation';
@@ -15,9 +15,20 @@ export default function ServerCard({ server }: { server: MinecraftServer }) {
     const router = useRouter();
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setHostname(window.location.hostname);
-        }
+        const fetchIp = async () => {
+            // Fallback default
+            if (typeof window !== 'undefined') {
+                setHostname(window.location.hostname);
+            }
+            try {
+                // Try to get real public IP from server
+                const ip = await getPublicIp();
+                if (ip) setHostname(ip);
+            } catch (e) {
+                // Keep window.location.hostname on failure
+            }
+        };
+        fetchIp();
     }, []);
 
     const handleAction = async (action: 'start' | 'stop' | 'delete' | 'restart') => {
