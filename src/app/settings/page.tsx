@@ -84,7 +84,7 @@ export default function SettingsPage() {
                                         </div>
                                         <div className={styles.statusInfo}>
                                             <label>Version</label>
-                                            <div className={styles.value}>v0.4.0</div>
+                                            <div className={styles.value}>v0.4.1</div>
                                         </div>
                                     </div>
 
