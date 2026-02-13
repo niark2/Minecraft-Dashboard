@@ -51,20 +51,23 @@ export async function updateApplication() {
         console.log('Git Pull Output:', pullOutput);
         if (pullError) console.error('Git Pull Stderr:', pullError);
 
-        // 2. On lance la reconstruction en arrière-plan
-        // Cette commande va reconstruire l'image et redémarrer le conteneur.
-        // Comme c'est cette même application qui tourne, elle va se couper.
-        // Le "nohup" et "&" permettent de détacher le processus pour qu'il survive à l'arrêt du conteneur actuel.
-        console.log('Triggering docker rebuild...');
+        // 2. On lance la reconstruction via un script shell temporaire
+        // Cela garantit que la commande survit à l'arrêt du conteneur actuel
+        console.log('Creating update script...');
+        const scriptPath = '/app_host/update_script.sh';
+        const createScriptCmd = `echo "#!/bin/bash
+sleep 2
+cd /app_host
+docker compose up -d --build
+rm /app_host/update_script.sh" > ${scriptPath} && chmod +x ${scriptPath}`;
 
-        // On utilise 'docker compose' (version moderne)
-        // nohup permet de détacher le processus pour qu'il ne soit pas tué quand le conteneur s'arrête
-        const rebuildCmd = 'nohup docker compose -f /app_host/docker-compose.yml up -d --build > /tmp/update.log 2>&1 &';
+        await execAsync(createScriptCmd);
 
-        console.log('Executing:', rebuildCmd);
+        console.log('Triggering docker rebuild via host script...');
+        const rebuildCmd = `nohup ${scriptPath} > /app_host/update.log 2>&1 &`;
 
-        // On lance sans attendre (car le conteneur va mourir)
-        exec(rebuildCmd, { cwd: '/app_host' });
+        // On lance sans attendre
+        exec(rebuildCmd);
 
         return {
             success: true,
