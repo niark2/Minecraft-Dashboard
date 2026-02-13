@@ -31,7 +31,7 @@ FROM base AS runner
 WORKDIR /app
 
 # Install git and docker-cli for updates
-RUN apk add --no-cache git docker-cli
+RUN apk add --no-cache git docker-cli docker-cli-compose
 
 ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during the runtime.

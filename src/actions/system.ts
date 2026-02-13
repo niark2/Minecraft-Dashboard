@@ -58,7 +58,10 @@ export async function updateApplication() {
         console.log('Triggering docker rebuild...');
 
         // On utilise 'docker compose' (version moderne)
-        const rebuildCmd = 'docker compose -f /app_host/docker-compose.yml up -d --build';
+        // nohup permet de détacher le processus pour qu'il ne soit pas tué quand le conteneur s'arrête
+        const rebuildCmd = 'nohup docker compose -f /app_host/docker-compose.yml up -d --build > /tmp/update.log 2>&1 &';
+
+        console.log('Executing:', rebuildCmd);
 
         // On lance sans attendre (car le conteneur va mourir)
         exec(rebuildCmd, { cwd: '/app_host' });
