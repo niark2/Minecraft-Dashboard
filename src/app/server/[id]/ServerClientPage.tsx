@@ -16,6 +16,8 @@ import DashboardMetadataEditor from '@/components/Editor/DashboardMetadataEditor
 import GameRuleEditor from '@/components/Editor/GameRuleEditor';
 import SystemResourcesEditor from '@/components/Editor/SystemResourcesEditor';
 import SetupManager from '@/components/SetupManager/SetupManager';
+import LogoutButton from '@/components/LogoutButton';
+import SettingsButton from '@/components/SettingsButton';
 import styles from './page.module.scss';
 import Link from 'next/link';
 

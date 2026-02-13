@@ -1,11 +1,18 @@
 .main {
     max-width: 1300px;
     margin: 0 auto;
-    padding: 4rem 2rem;
+    padding: 2rem;
+}
+
+.topNav {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 4rem;
 }
 
 .header {
-    margin-bottom: 5rem;
+    margin-bottom: 4rem;
     text-align: left;
 
     h1 {
@@ -28,7 +35,7 @@
 .headerContent {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: flex-start;
 
     @media (max-width: 768px) {
         flex-direction: column;

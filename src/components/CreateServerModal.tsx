@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import CreateServerForm from './CreateServerForm';
+import Portal from './Portal';
 import styles from './CreateServerModal.module.scss';
 
 export default function CreateServerModal() {
@@ -14,15 +15,17 @@ export default function CreateServerModal() {
             </button>
 
             {isOpen && (
-                <div className={styles.overlay} onClick={() => setIsOpen(false)}>
-                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                        <div className={styles.header}>
-                            <h2>Deploy Server</h2>
-                            <button onClick={() => setIsOpen(false)} className={styles.close}>×</button>
+                <Portal>
+                    <div className={styles.overlay} onClick={() => setIsOpen(false)}>
+                        <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                            <div className={styles.header}>
+                                <h2>Deploy Server</h2>
+                                <button onClick={() => setIsOpen(false)} className={styles.close}>×</button>
+                            </div>
+                            <CreateServerForm onSuccess={() => setIsOpen(false)} />
                         </div>
-                        <CreateServerForm onSuccess={() => setIsOpen(false)} />
                     </div>
-                </div>
+                </Portal>
             )}
         </>
     );

@@ -1,0 +1,34 @@
+.settingsBtn {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+    text-decoration: none;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    span {
+        @media (max-width: 640px) {
+            display: none;
+        }
+    }
+
+    svg {
+        opacity: 0.7;
+    }
+
+    &:hover svg {
+        opacity: 1;
+    }
+}

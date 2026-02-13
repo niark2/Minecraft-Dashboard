@@ -1,7 +1,14 @@
 .manageContainer {
-    padding: 3rem 2rem;
-    max-width: 1400px;
+    padding: 2rem;
+    max-width: 1300px;
     margin: 0 auto;
+}
+
+.topNav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
 }
 
 .backLink {
@@ -11,7 +18,6 @@
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.9rem;
-    margin-bottom: 3rem;
     transition: var(--transition);
 
     &:hover {

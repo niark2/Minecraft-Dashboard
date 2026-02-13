@@ -30,6 +30,9 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+# Install git and docker-cli for updates
+RUN apk add --no-cache git docker-cli
+
 ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during the runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1

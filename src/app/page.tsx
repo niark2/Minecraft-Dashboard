@@ -13,7 +13,7 @@ export default async function Home() {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <div>
-            <h1>Minecraft Dashboard</h1>
+            <h1>Dashboard</h1>
             <p>Your personal gaming infrastructure. 100% self-hosted.</p>
           </div>
           <CreateServerModal />

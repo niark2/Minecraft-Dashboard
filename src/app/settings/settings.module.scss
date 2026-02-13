@@ -1,0 +1,338 @@
+.container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.topNav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 4rem;
+
+    h1 {
+        font-size: 3rem;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        margin: 0;
+    }
+}
+
+.backLink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    margin-bottom: 3rem;
+
+    &:hover {
+        color: white;
+    }
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 4rem;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    text-align: left;
+    transition: var(--transition);
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+
+    svg {
+        opacity: 0.6;
+    }
+
+    &.active {
+        background: white;
+        color: black;
+
+        svg {
+            opacity: 1;
+        }
+    }
+}
+
+.content {
+    min-width: 0;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 3rem;
+    margin-bottom: 2rem;
+
+    @media (max-width: 640px) {
+        padding: 2rem;
+    }
+}
+
+.section {
+    animation: fadeIn 0.4s ease-out forwards;
+
+    h2 {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+
+    p {
+        color: var(--text-secondary);
+        margin-bottom: 3rem;
+        font-size: 1rem;
+    }
+}
+
+.statusGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.statusCard {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.statusIcon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.statusInfo {
+    label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        letter-spacing: 0.1em;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: white;
+    }
+}
+
+.notice {
+    display: flex;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    border-radius: 16px;
+    align-items: flex-start;
+
+    svg {
+        color: var(--text-secondary);
+        opacity: 0.5;
+        flex-shrink: 0;
+    }
+
+    strong {
+        display: block;
+        color: white;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
+
+    p {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+}
+
+.updateStatus {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.updateButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: white;
+    color: black;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    width: fit-content;
+
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: var(--text-secondary);
+    }
+}
+
+.alert {
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease-out;
+
+    &.success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    &.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    &.info {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+}
+
+.checkButton {
+    @extend .updateButton;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: 1px solid var(--border-color);
+
+    &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--text-secondary);
+    }
+}
+
+.updateAvailable {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 2rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.updateDetails {
+    display: flex;
+    gap: 1rem;
+    color: #10b981;
+
+    strong {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+    }
+
+    p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+}
+
+.commitMsg {
+    display: block;
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    border-left: 3px solid #10b981;
+}
+
+.helpText {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
