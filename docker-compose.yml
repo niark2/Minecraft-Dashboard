@@ -16,5 +16,6 @@ services:
       - NODE_ENV=production
       - DASHBOARD_USERNAME=${DASHBOARD_USERNAME:-admin}
       - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD:-changeme}
+      - HOST_PROJECT_PATH=${HOST_PROJECT_PATH:-/opt/minecraft-dashboard}
     env_file:
       - .env
