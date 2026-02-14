@@ -43,7 +43,7 @@ export default function SettingsPage() {
     };
 
     const handleUpdate = () => {
-        if (!confirm('Are you sure you want to update? The dashboard will restart and be unavailable for a minute.')) return;
+        if (!confirm('Are you sure you want to update the files? You will need to manually run "docker compose up -d --build" afterwards to apply changes.')) return;
 
         startTransition(async () => {
             const result = await updateApplication();

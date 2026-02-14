@@ -45,39 +45,66 @@ export async function getServers(): Promise<MinecraftServer[]> {
 
         const containers = await docker.listContainers({ all: true });
 
-        const servers = await Promise.all(containers
-            .filter(c => {
-                if (!c.Labels || c.Labels[CONTAINER_LABEL] !== 'true') {
-                    return false;
-                }
-
-                // Admins can see all servers
-                if (currentUser.role === 'admin') {
-                    return true;
-                }
-
-                // Regular users can only see their own servers
-                const owner = c.Labels['com.minecraft.owner'];
-                return owner === currentUser.userId;
-            })
+        const results = await Promise.all(containers
+            .filter(c => c.Labels && c.Labels[CONTAINER_LABEL] === 'true')
             .map(async c => {
                 const id = c.Id.substring(0, 12);
-                const portInfo = c.Ports.find(p => p.PublicPort);
+                const owner = c.Labels['com.minecraft.owner'];
+
+                // Admins see everything
+                let hasAccess = currentUser.role === 'admin' || owner === currentUser.userId;
 
                 // Fetch extra metadata from file
                 let logoUrl = c.Labels['com.minecraft.logo_url'] || '';
                 let displayName = c.Names[0].replace('/', '');
+                let sharedWith: string[] = [];
 
                 try {
-                    const metaContent = await getServerFileContent(id, '/data/.dashboard_meta.json');
-                    if (!metaContent.startsWith('Error')) {
+                    // Note: We bypass the ownership check in getServerFileContent here because we ARE the server-side logic determining access
+                    // We'll use a raw helper or just the logic to avoid circularity if needed
+                    // But for now, we'll try to use it if it doesn't cause issues
+                    const container = docker.getContainer(id);
+                    const exec = await container.exec({
+                        Cmd: ['cat', '/data/.dashboard_meta.json'],
+                        AttachStdout: true,
+                        AttachStderr: true,
+                        Tty: false
+                    });
+                    const stream = await exec.start({});
+                    const metaContent: string = await new Promise((resolve) => {
+                        let out = '';
+                        stream.on('data', chunk => {
+                            let offset = 0;
+                            while (offset < chunk.length) {
+                                if (chunk.length < offset + 8) break;
+                                const type = chunk.readUInt8(offset);
+                                const size = chunk.readUInt32BE(offset + 4);
+                                offset += 8;
+                                if (type === 1) out += chunk.slice(offset, offset + size).toString();
+                                offset += size;
+                            }
+                        });
+                        stream.on('end', () => resolve(out));
+                        stream.on('error', () => resolve(''));
+                        setTimeout(() => resolve(''), 1000);
+                    });
+
+                    if (metaContent) {
                         const meta = JSON.parse(metaContent);
                         if (meta.logoUrl) logoUrl = meta.logoUrl;
                         if (meta.name) displayName = meta.name;
+                        if (Array.isArray(meta.sharedWith)) {
+                            sharedWith = meta.sharedWith;
+                            if (sharedWith.includes(currentUser.userId)) {
+                                hasAccess = true;
+                            }
+                        }
                     }
                 } catch (e) { }
 
-                return {
+                if (!hasAccess) return null;
+
+                const server: MinecraftServer = {
                     id,
                     name: displayName,
                     image: c.Image,
@@ -90,18 +117,31 @@ export async function getServers(): Promise<MinecraftServer[]> {
                     version: c.Labels['com.minecraft.version'] || 'latest',
                     type: c.Labels['com.minecraft.type'] || 'vanilla',
                     logoUrl,
-                    owner: c.Labels['com.minecraft.owner'] // Add owner info
+                    owner: owner,
+                    sharedWith: sharedWith
                 };
+
+                return server;
             }));
-        return servers;
+
+        return results.filter((s): s is MinecraftServer => s !== null);
     } catch (error) {
         console.error('Failed to list containers (Is Docker running?):', error);
         return [];
     }
 }
 
+
 export async function updateServerResources(id: string, minRam: string, maxRam: string) {
     try {
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+        if (!currentUser) return { success: false, error: 'Unauthorized' };
+
+        const { checkServerDirectOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerDirectOwnership(id, currentUser);
+        if (!hasAccess) return { success: false, error: 'Only the server owner can update resources' };
+
         const container = docker.getContainer(id);
         const info = await container.inspect();
 
@@ -309,11 +349,11 @@ export async function deleteServer(id: string) {
             return { success: false, error: 'Unauthorized' };
         }
 
-        const { checkServerOwnership } = await import('@/lib/serverOwnership');
-        const hasAccess = await checkServerOwnership(id, currentUser);
+        const { checkServerDirectOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerDirectOwnership(id, currentUser);
 
         if (!hasAccess) {
-            return { success: false, error: 'You do not have permission to delete this server' };
+            return { success: false, error: 'Only the server owner can delete this server' };
         }
 
         const container = docker.getContainer(id);
@@ -1328,6 +1368,14 @@ export async function deleteBackup(id: string, filename: string) {
 
 export async function updateDashboardMetadata(id: string, updates: { name?: string, logoUrl?: string }) {
     try {
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+        if (!currentUser) return { success: false, error: 'Unauthorized' };
+
+        const { checkServerDirectOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerDirectOwnership(id, currentUser);
+        if (!hasAccess) return { success: false, error: 'Only the server owner can update dashboard settings' };
+
         const container = docker.getContainer(id);
         const data = await container.inspect();
         const existingLabels = data.Config.Labels || {};
@@ -1413,3 +1461,109 @@ export async function updateGameRule(id: string, rule: string, value: string) {
         return { success: false, error: error.message };
     }
 }
+
+export async function shareServerWithUser(serverId: string, username: string) {
+    try {
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+        if (!currentUser) return { success: false, error: 'Unauthorized' };
+
+        // Check if user is the DIRECT owner (only owners can share)
+        const container = docker.getContainer(serverId);
+        const info = await container.inspect();
+        const owner = info.Config.Labels?.['com.minecraft.owner'];
+
+        if (currentUser.role !== 'admin' && owner !== currentUser.userId) {
+            return { success: false, error: 'Only the server owner can share it' };
+        }
+
+        const { getUserByUsername } = await import('@/lib/users');
+        const targetUser = await getUserByUsername(username);
+
+        if (!targetUser) {
+            return { success: false, error: 'User not found' };
+        }
+
+        if (targetUser.id === owner) {
+            return { success: false, error: 'You are already the owner' };
+        }
+
+        // Get current metadata
+        const metaPath = '/data/.dashboard_meta.json';
+        const metaContent = await getServerFileContent(serverId, metaPath);
+        let meta = { sharedWith: [] as string[] };
+        if (!metaContent.startsWith('Error')) {
+            meta = JSON.parse(metaContent);
+        }
+
+        if (!meta.sharedWith) meta.sharedWith = [];
+        if (meta.sharedWith.includes(targetUser.id)) {
+            return { success: false, error: 'Server already shared with this user' };
+        }
+
+        meta.sharedWith.push(targetUser.id);
+        await saveServerFileContent(serverId, metaPath, JSON.stringify(meta, null, 2));
+
+        revalidatePath('/');
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function unshareServerWithUser(serverId: string, targetUserId: string) {
+    try {
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+        if (!currentUser) return { success: false, error: 'Unauthorized' };
+
+        // Check permissions
+        const container = docker.getContainer(serverId);
+        const info = await container.inspect();
+        const owner = info.Config.Labels?.['com.minecraft.owner'];
+
+        if (currentUser.role !== 'admin' && owner !== currentUser.userId) {
+            return { success: false, error: 'Only the server owner can unshare it' };
+        }
+
+        const metaPath = '/data/.dashboard_meta.json';
+        const metaContent = await getServerFileContent(serverId, metaPath);
+        if (metaContent.startsWith('Error')) return { success: false, error: 'Metadata not found' };
+
+        const meta = JSON.parse(metaContent);
+        if (!meta.sharedWith) return { success: true };
+
+        meta.sharedWith = meta.sharedWith.filter((id: string) => id !== targetUserId);
+        await saveServerFileContent(serverId, metaPath, JSON.stringify(meta, null, 2));
+
+        revalidatePath('/');
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function getSharedUsers(serverId: string) {
+    try {
+        const metaPath = '/data/.dashboard_meta.json';
+        const metaContent = await getServerFileContent(serverId, metaPath);
+        if (metaContent.startsWith('Error')) return [];
+
+        const meta = JSON.parse(metaContent);
+        if (!meta.sharedWith || !Array.isArray(meta.sharedWith)) return [];
+
+        const { getUserById } = await import('@/lib/users');
+        const sortedUsers = await Promise.all(
+            meta.sharedWith.map(async (id: string) => {
+                const user = await getUserById(id);
+                return user ? { id: user.id, username: user.username } : null;
+            })
+        );
+
+        return sortedUsers.filter(u => u !== null);
+    } catch (error) {
+        console.error('Failed to get shared users:', error);
+        return [];
+    }
+}
+

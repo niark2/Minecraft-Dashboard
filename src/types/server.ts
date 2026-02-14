@@ -13,4 +13,5 @@ export interface MinecraftServer {
   minMemory?: string;
   maxMemory?: string;
   owner?: string; // User ID of the server owner
+  sharedWith?: string[]; // User IDs of users this server is shared with
 }

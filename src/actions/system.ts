@@ -2,45 +2,8 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import docker from '@/lib/docker';
-import { readFile } from 'fs/promises';
 
 const execAsync = promisify(exec);
-
-/**
- * Détecte automatiquement le chemin absolu du projet sur l'hôte
- * en inspectant les mounts du conteneur actuel via l'API Docker.
- * Fallback sur HOST_PROJECT_PATH si la détection échoue.
- */
-async function getHostProjectPath(): Promise<string> {
-    // Fallback explicite
-    if (process.env.HOST_PROJECT_PATH) {
-        return process.env.HOST_PROJECT_PATH;
-    }
-
-    try {
-        // Le hostname d'un conteneur Docker est son container ID (short)
-        const hostname = (await readFile('/etc/hostname', 'utf-8')).trim();
-        const container = docker.getContainer(hostname);
-        const info = await container.inspect();
-
-        // Chercher le mount dont la destination est /app_host
-        const appHostMount = info.Mounts.find(
-            (m: { Destination: string }) => m.Destination === '/app_host'
-        );
-
-        if (appHostMount?.Source) {
-            console.log(`Auto-detected host project path: ${appHostMount.Source}`);
-            return appHostMount.Source;
-        }
-    } catch (err) {
-        console.warn('Could not auto-detect host path:', err);
-    }
-
-    throw new Error(
-        'Cannot detect host project path. Set HOST_PROJECT_PATH in your .env file.'
-    );
-}
 
 export async function checkForUpdates() {
     try {
@@ -84,18 +47,10 @@ export async function updateApplication() {
         console.log('Git Pull Output:', pullOutput);
         if (pullError) console.error('Git Pull Stderr:', pullError);
 
-        // 2. Détecter le chemin hôte automatiquement
-        const hostPath = await getHostProjectPath();
-
-        console.log(`Triggering docker rebuild with host path: ${hostPath}`);
-        const rebuildCmd = `nohup sh -c 'sleep 3 && docker compose -f /app_host/docker-compose.yml --project-directory ${hostPath} up -d --build' > /app_host/update.log 2>&1 &`;
-
-        // Lancer sans attendre (le conteneur actuel sera remplacé)
-        exec(rebuildCmd);
-
+        // 2. Retourner les instructions pour le redémarrage manuel
         return {
             success: true,
-            message: 'Update started. The dashboard will restart in a few moments.'
+            message: 'Files updated successfully! To apply the changes, please run: docker compose up -d --build'
         };
     } catch (error: unknown) {
         console.error('Update failed:', error);
@@ -106,3 +61,4 @@ export async function updateApplication() {
         };
     }
 }
+

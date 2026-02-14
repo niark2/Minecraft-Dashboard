@@ -251,3 +251,22 @@ export async function setRole(userId: string, role: 'admin' | 'user'): Promise<b
     await writeDatabase(db);
     return true;
 }
+
+// Récupérer un utilisateur par son nom d'utilisateur
+export async function getUserByUsername(username: string): Promise<Omit<User, 'password'> | null> {
+    const db = await readDatabase();
+    const user = db.users.find(u => u.username === username);
+    if (!user) return null;
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+}
+
+// Récupérer un utilisateur par son ID
+export async function getUserById(userId: string): Promise<Omit<User, 'password'> | null> {
+    const db = await readDatabase();
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return null;
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+}
+
