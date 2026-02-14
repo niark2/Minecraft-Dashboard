@@ -35,10 +35,31 @@ export async function getPublicIp(): Promise<string> {
 
 export async function getServers(): Promise<MinecraftServer[]> {
     try {
+        // Get current user to filter servers
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return [];
+        }
+
         const containers = await docker.listContainers({ all: true });
 
         const servers = await Promise.all(containers
-            .filter(c => c.Labels && c.Labels[CONTAINER_LABEL] === 'true')
+            .filter(c => {
+                if (!c.Labels || c.Labels[CONTAINER_LABEL] !== 'true') {
+                    return false;
+                }
+
+                // Admins can see all servers
+                if (currentUser.role === 'admin') {
+                    return true;
+                }
+
+                // Regular users can only see their own servers
+                const owner = c.Labels['com.minecraft.owner'];
+                return owner === currentUser.userId;
+            })
             .map(async c => {
                 const id = c.Id.substring(0, 12);
                 const portInfo = c.Ports.find(p => p.PublicPort);
@@ -68,7 +89,8 @@ export async function getServers(): Promise<MinecraftServer[]> {
                     maxMemory: c.Labels['com.minecraft.max_memory'] || c.Labels['com.minecraft.memory'] || '2G',
                     version: c.Labels['com.minecraft.version'] || 'latest',
                     type: c.Labels['com.minecraft.type'] || 'vanilla',
-                    logoUrl
+                    logoUrl,
+                    owner: c.Labels['com.minecraft.owner'] // Add owner info
                 };
             }));
         return servers;
@@ -152,6 +174,14 @@ export async function createServer(formData: FormData) {
     }
 
     try {
+        // Get current user to set as owner
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
         // Initial pull might take time, ensuring image exists is good practice
         // but docker.createContainer usually fails if image not present unless pulled.
         // We let Docker handle pulling implicitly or user can pre-pull.
@@ -199,7 +229,9 @@ export async function createServer(formData: FormData) {
                 'com.minecraft.version': version,
                 'com.minecraft.memory': memory,
                 'com.minecraft.port': port,
-                'com.minecraft.logo_url': icon
+                'com.minecraft.logo_url': icon,
+                'com.minecraft.owner': currentUser.userId, // Add owner
+                'com.minecraft.owner_username': currentUser.username // Optional: for easier debugging
             },
             Tty: true,
             OpenStdin: true
@@ -215,6 +247,21 @@ export async function createServer(formData: FormData) {
 
 export async function startServer(id: string) {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to start this server' };
+        }
+
         const container = docker.getContainer(id);
         await container.start();
         revalidatePath('/');
@@ -227,6 +274,21 @@ export async function startServer(id: string) {
 
 export async function stopServer(id: string) {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to stop this server' };
+        }
+
         const container = docker.getContainer(id);
         await container.stop();
         revalidatePath('/');
@@ -239,6 +301,21 @@ export async function stopServer(id: string) {
 
 export async function deleteServer(id: string) {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to delete this server' };
+        }
+
         const container = docker.getContainer(id);
         try {
             await container.stop();
@@ -254,6 +331,21 @@ export async function deleteServer(id: string) {
 
 export async function getServerStatus(id: string): Promise<MinecraftServer | null> {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return null;
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return null;
+        }
+
         const container = docker.getContainer(id);
         const data = await container.inspect();
         const labels = data.Config.Labels || {};
@@ -282,7 +374,8 @@ export async function getServerStatus(id: string): Promise<MinecraftServer | nul
             version: labels['com.minecraft.version'] || 'latest',
             type: labels['com.minecraft.type'] || 'vanilla',
             startedAt: data.State.StartedAt,
-            logoUrl
+            logoUrl,
+            owner: labels['com.minecraft.owner']
         };
     } catch (error) {
         console.error('Failed to get server status:', error);
@@ -292,6 +385,21 @@ export async function getServerStatus(id: string): Promise<MinecraftServer | nul
 
 export async function getServerLogs(id: string, since?: number): Promise<string> {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return 'Unauthorized';
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return 'You do not have permission to view logs for this server';
+        }
+
         const container = docker.getContainer(id);
         const options: any = {
             stdout: true,
@@ -314,6 +422,21 @@ export async function getServerLogs(id: string, since?: number): Promise<string>
 }
 export async function restartServer(id: string) {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to restart this server' };
+        }
+
         const container = docker.getContainer(id);
         await container.restart();
         revalidatePath('/');
@@ -327,6 +450,21 @@ export async function restartServer(id: string) {
 export async function updateServerConfig(id: string, updates: Record<string, string>) {
     const path = '/data/server.properties';
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to configure this server' };
+        }
+
         const content = await getServerFileContent(id, path);
         if (content.startsWith('Error:')) {
             return { success: false, error: 'Could not find server.properties. Is the server initialized?' };
@@ -371,6 +509,21 @@ export interface FileInfo {
 
 export async function getServerFiles(id: string, path: string = '/data'): Promise<FileInfo[]> {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return [];
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return [];
+        }
+
         const cleanPath = validateAndSanitizePath(path);
         const container = docker.getContainer(id);
         const exec = await container.exec({
@@ -440,6 +593,21 @@ export async function getServerFiles(id: string, path: string = '/data'): Promis
 
 export async function getServerFileContent(id: string, path: string): Promise<string> {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return 'Error: Unauthorized';
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return 'Error: You do not have permission to access this server';
+        }
+
         const cleanPath = validateAndSanitizePath(path);
         const container = docker.getContainer(id);
         // Using base64 for reading ensures UTF-8 and special characters are preserved
@@ -492,6 +660,21 @@ export async function getServerFileContent(id: string, path: string): Promise<st
 }
 export async function saveServerFileContent(id: string, path: string, content: string): Promise<{ success: boolean; error?: string }> {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to modify this server' };
+        }
+
         // Convert to base64 to leverage the safe binary save function which uses streams
         const base64Content = Buffer.from(content, 'utf8').toString('base64');
         return await saveBinaryFile(id, path, base64Content);
@@ -503,6 +686,21 @@ export async function saveServerFileContent(id: string, path: string, content: s
 
 export async function sendServerCommand(id: string, command: string): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
+        // Check ownership
+        const { getCurrentUser } = await import('@/actions/auth');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { checkServerOwnership } = await import('@/lib/serverOwnership');
+        const hasAccess = await checkServerOwnership(id, currentUser);
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to send commands to this server' };
+        }
+
         const container = docker.getContainer(id);
 
         const exec = await container.exec({

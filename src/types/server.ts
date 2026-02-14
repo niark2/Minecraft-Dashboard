@@ -12,4 +12,5 @@ export interface MinecraftServer {
   logoUrl?: string;
   minMemory?: string;
   maxMemory?: string;
+  owner?: string; // User ID of the server owner
 }

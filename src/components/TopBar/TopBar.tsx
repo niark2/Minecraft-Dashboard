@@ -1,16 +1,14 @@
-'use client';
-
 import Link from 'next/link';
 import SettingsButton from '@/components/SettingsButton';
 import LogoutButton from '@/components/LogoutButton';
+import UserInfoDisplay from './UserInfoDisplay';
 import styles from './TopBar.module.scss';
-import { usePathname } from 'next/navigation';
+import { getCurrentUser } from '@/actions/auth';
 
-export default function TopBar() {
-    const pathname = usePathname();
+export default async function TopBar() {
+    const currentUser = await getCurrentUser();
 
-    // Don't show top bar on login page
-    if (pathname === '/login') return null;
+    if (!currentUser) return null;
 
     return (
         <nav className={styles.topBar}>
@@ -23,6 +21,7 @@ export default function TopBar() {
                 </Link>
 
                 <div className={styles.actions}>
+                    <UserInfoDisplay username={currentUser.username} role={currentUser.role} />
                     <SettingsButton />
                     <LogoutButton />
                 </div>

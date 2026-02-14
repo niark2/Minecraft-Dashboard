@@ -1,12 +1,14 @@
 'use client';
 
-import { Settings, Shield, User, Info, RefreshCw, Github, AlertCircle } from 'lucide-react';
+import { Settings, Shield, User, Info, RefreshCw, Github, AlertCircle, Users } from 'lucide-react';
 import styles from './settings.module.scss';
 import Link from 'next/link';
 import { updateApplication, checkForUpdates } from '@/actions/system';
-import { useState, useTransition } from 'react';
+import { getCurrentUser } from '@/actions/auth';
+import { useState, useTransition, useEffect } from 'react';
+import UserManagement from '@/components/UserManagement';
 
-type TabType = 'overview' | 'updates';
+type TabType = 'overview' | 'updates' | 'users';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -14,6 +16,15 @@ export default function SettingsPage() {
     const [isChecking, setIsChecking] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
     const [updateInfo, setUpdateInfo] = useState<{ hasUpdate: boolean, commitsBehind?: number, latestMessage?: string } | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const user = await getCurrentUser();
+            if (user) setUserRole(user.role);
+        };
+        fetchUser();
+    }, []);
 
     const handleCheck = async () => {
         setIsChecking(true);
@@ -68,6 +79,15 @@ export default function SettingsPage() {
                         <RefreshCw size={20} />
                         <span>Updates</span>
                     </button>
+                    {userRole === 'admin' && (
+                        <button
+                            className={`${styles.navItem} ${activeTab === 'users' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('users')}
+                        >
+                            <Users size={20} />
+                            <span>Users</span>
+                        </button>
+                    )}
                 </aside>
 
                 <main className={styles.content}>
@@ -118,7 +138,7 @@ export default function SettingsPage() {
                                 </div>
                             </div>
                         </div>
-                    ) : (
+                    ) : activeTab === 'updates' ? (
                         <div className={styles.card}>
                             <div className={styles.section}>
                                 <h2>Updates</h2>
@@ -140,7 +160,7 @@ export default function SettingsPage() {
                                                     <p>{updateInfo.commitsBehind} new commit(s) found.</p>
                                                     {updateInfo.latestMessage && (
                                                         <code className={styles.commitMsg}>
-                                                            "{updateInfo.latestMessage}"
+                                                            &quot;{updateInfo.latestMessage}&quot;
                                                         </code>
                                                     )}
                                                 </div>
@@ -190,6 +210,8 @@ export default function SettingsPage() {
                                 </div>
                             </div>
                         </div>
+                    ) : (
+                        <UserManagement />
                     )}
                 </main>
             </div>
